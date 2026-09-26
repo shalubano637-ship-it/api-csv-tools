@@ -15,7 +15,6 @@ const cors = {
 };
 
 const ALLOWED_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"]);
-const MCP_SAFE_METHODS = new Set(["GET", "HEAD"]);
 const MAX_REQUEST_BODY = 1024 * 1024;
 const MAX_RESPONSE_BODY = 2 * 1024 * 1024;
 const MAX_URL_LENGTH = 4096;
@@ -224,15 +223,29 @@ function createServer() {
   server.registerTool(
     "test_api",
     {
-      description: "Test a public HTTP or HTTPS API with a safe read-only GET or HEAD request. Private/local hosts, non-standard ports, credentials in URLs, and oversized requests are blocked.",
+      description: "Test a public HTTP or HTTPS API. GET and HEAD are read-only. POST, PUT, PATCH and DELETE are supported with JSON or text bodies, but require confirm=true because they can change data on the target API. Private/local hosts, non-standard ports, credentials in URLs, and oversized requests are blocked.",
       inputSchema: {
         url: z.string().url().describe("Public HTTP or HTTPS API URL"),
-        method: z.enum(["GET", "HEAD"]).default("GET"),
+        method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"]).default("GET"),
         headers: z.record(z.string(), z.string()).optional(),
+        body: z.unknown().optional().describe("Optional request body. Objects, arrays, strings, numbers and booleans are JSON-encoded unless already supplied as a string."),
+        confirm: z.boolean().default(false).describe("Must be true for POST, PUT, PATCH or DELETE requests. Set true only when the user explicitly requested the mutating request."),
       },
     },
-    async ({ url, method, headers }) => {
-      const response = await runUpstream({ url, method, headers });
+    async ({ url, method, headers, body, confirm }) => {
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(method) && !confirm) {
+        const data = {
+          error: "Confirmation required",
+          message: "This request can modify data on the target API. Ask the user to explicitly confirm the request, then retry with confirm=true.",
+        };
+        return {
+          isError: true,
+          content: [{ type: "text", text: JSON.stringify(data) }],
+          structuredContent: data,
+        };
+      }
+
+      const response = await runUpstream({ url, method, headers, body });
       const data = await response.json() as Record<string, unknown>;
       const status = response.status;
 
