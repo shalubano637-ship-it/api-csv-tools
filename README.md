@@ -5,19 +5,19 @@ A developer-focused web toolkit combining API testing, CSV workflows and JSON ut
 ## Current MVP
 - API tester: GET, POST, PUT, PATCH, DELETE
 - Request JSON body
+- Query parameters, custom headers and bearer/API-key auth
 - Response status, timing, body and headers
-- CSV upload with local parsing, search and export
+- Local request history
+- CSV upload with local parsing, search, cleaning, validation and export
+- CSV to JSON and JSON to CSV
 - JSON validation and formatter
+- JSON schema diff
+- CSV to API bulk importer
+- Plugin/integration manager
 - Responsive dark UI
-- SEO metadata
 
-## Roadmap
-1. Schema diff and API response comparison
-2. CSV cleaner and validator
-3. CSV → API bulk importer with retries
-4. Scheduled API monitoring
-5. Response history and alerts
-6. Supabase authentication and usage limits
+## Cloudflare gateway
+A separate Worker is provided under `worker/` for server-side API requests. Configure the Worker secret `GATEWAY_SECRET` before production use.
 
 ## Local development
 ```bash
