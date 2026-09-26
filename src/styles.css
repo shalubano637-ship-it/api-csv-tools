@@ -3,3 +3,5 @@
 
 .jsonActions{display:flex;gap:8px;margin-top:10px}.jsonActions .format{margin-top:0}.secondary{height:42px;padding:0 16px;background:#171d31;color:#d7deed;border:1px solid #303a52;border-radius:9px;font-weight:700;cursor:pointer}.csvbar{flex-wrap:wrap}.csvbar button{white-space:nowrap}
 @media(max-width:720px){.jsonActions{flex-direction:column}.jsonActions button{width:100%}}
+
+.validation{margin:0 16px 12px}.validationGood,.validationBad{border-radius:9px;padding:12px 14px;display:flex;flex-direction:column;gap:5px;font-size:13px}.validationGood{background:#0d211a;border:1px solid #24553f;color:#72e3b2}.validationBad{background:#29151b;border:1px solid #65303b;color:#ffb7c1}.validationGood span,.validationBad span{font-size:12px;color:#9ba5bb}.validationBad ul{margin:7px 0 0;padding-left:20px;color:#d8deea;max-height:180px;overflow:auto}.validationBad li{margin:4px 0}.csvbar{row-gap:8px}
