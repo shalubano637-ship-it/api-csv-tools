@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Security — API CSV Tools</title><meta name="description" content="Security practices and responsible disclosure for API CSV Tools."></head>
+<body style="font-family:system-ui;max-width:900px;margin:40px auto;padding:0 20px;line-height:1.7">
+<a href="/">← API CSV Tools</a><h1>Security</h1><p><strong>Last updated: September 26, 2026</strong></p>
+<h2>Gateway protections</h2><ul><li>Private and local network targets are blocked.</li><li>Embedded URL credentials are blocked.</li><li>Only HTTP/HTTPS and supported ports are allowed.</li><li>Request URL, header and body size limits are enforced.</li><li>Rate limiting is applied to public gateway and MCP traffic.</li><li>Write methods exposed through MCP require explicit confirmation.</li></ul>
+<h2>Credential safety</h2><p>Never publish API keys or private tokens in frontend code, GitHub repositories or public screenshots. When using API CSV Tools, send credentials only to services you are authorized to access.</p>
+<h2>Responsible disclosure</h2><p>If you discover a security issue, please report it privately through the project's GitHub repository rather than publicly posting credentials, exploit details or sensitive data. Include enough information to reproduce the issue safely.</p>
+<h2>Scope</h2><p>Third-party APIs, Cloudflare infrastructure and external services connected through the tool have their own security controls and policies and are outside API CSV Tools' direct control.</p>
+<p><a href="/">Return to API CSV Tools</a></p></body></html>
