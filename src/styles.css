@@ -227,3 +227,7 @@ footer a{color:#818da0;text-decoration:none}footer a:hover{color:#fff}
 @media(max-width:720px){.devTools{padding:0 12px 12px}.devToolGrid{grid-template-columns:1fr}.devToolRow input{width:100%;flex-basis:100%}.devToolRow button{flex:1}.responseSearch{width:100%}}
 
 .matchCount{color:#718096;font-size:9px;white-space:nowrap;align-self:center}
+
+
+/* Purple click highlight for interactive controls */
+button:active,a.btn:active,.button:active,.btn:active,[role="button"]:active{border-color:#8b7cff!important;box-shadow:0 0 0 2px rgba(139,124,255,.28)!important}
