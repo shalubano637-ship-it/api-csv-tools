@@ -1,0 +1,10 @@
+{
+  "name": "api-csv-tools-gateway",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.0.0",
+    "agents": "latest",
+    "zod": "latest"
+  }
+}
