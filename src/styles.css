@@ -8,7 +8,7 @@
   --purple:#8b7cff;--purple2:#6e5df6;--green:#50d69b;--red:#ff7187;--yellow:#e5c76a;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-button:focus,button:focus-visible{outline:none;box-shadow:none}
+button:focus:not(:focus-visible){outline:none;box-shadow:none}\nbutton:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #8b7cff;outline-offset:2px}
 html{scroll-behavior:smooth}
 body{margin:0;min-width:320px;background:var(--bg)}
 button,input,select,textarea{font:inherit}
