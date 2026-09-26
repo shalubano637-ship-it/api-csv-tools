@@ -1,1 +1,120 @@
-Learn how to test REST APIs with HTTP methods, headers, authentication, request bodies and response status codes.
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to Test a REST API: A Practical Guide | API CSV Tools</title>
+<meta name="description" content="Learn how to test REST APIs with HTTP methods, URLs, query parameters, headers, authentication, request bodies and response status codes.">
+<link rel="canonical" href="https://api-csv-tools.shalubano637.workers.dev/blog/how-to-test-rest-api/">
+<style>
+:root{color-scheme:dark;--bg:#0b1120;--panel:#101827;--panel2:#0d1524;--text:#eef2ff;--muted:#9aa8c2;--line:#27344d;--accent:#7c9cff;--accent2:#a8baff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#10192b 0,#0b1120 420px);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.7}a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}.wrap{max-width:900px;margin:auto;padding:0 22px}.nav{height:78px;display:flex;align-items:center;border-bottom:1px solid var(--line)}.brand{font-size:20px;font-weight:800;color:#fff}.brand span{margin-right:10px}.crumb{padding:32px 0 10px;color:var(--muted);font-size:14px}.hero{padding:20px 0 34px}.tag{display:inline-block;color:#89a7ff;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin-bottom:12px}.hero h1{font-size:clamp(38px,7vw,64px);line-height:1.05;letter-spacing:-.045em;margin:0 0 22px;max-width:850px}.lead{font-size:20px;color:#aeb9cc;max-width:760px}.card{background:rgba(16,24,39,.82);border:1px solid var(--line);border-radius:20px;padding:30px;margin:24px 0}.card h2{font-size:28px;line-height:1.2;margin:0 0 14px}.card h3{font-size:20px;margin:28px 0 8px}.card p,.card li{color:#b5c0d2}.card ul,.card ol{padding-left:24px}.code{overflow:auto;background:#080d17;border:1px solid #202c42;border-radius:12px;padding:18px;margin:16px 0;color:#d9e2f5;font:14px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre}.tip{border-left:3px solid var(--accent);padding:12px 16px;background:#0c1423;border-radius:8px;color:#b9c5d8;margin:18px 0}.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.btn{display:inline-block;padding:12px 18px;border-radius:10px;background:#fff;color:#0b1120;font-weight:800}.btn.secondary{background:transparent;color:#dce5ff;border:1px solid var(--line)}footer{padding:44px 0 60px;color:#77849b;font-size:14px;border-top:1px solid var(--line);margin-top:50px}footer a{margin-right:14px}@media(max-width:600px){.wrap{padding:0 18px}.card{padding:22px}.hero h1{font-size:40px}.lead{font-size:18px}}
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap" style="width:100%"><a class="brand" href="/"><span>⚡</span>API CSV Tools</a></div></header>
+<main class="wrap">
+<div class="crumb"><a href="/blog/">Blog</a> → API Testing</div>
+<section class="hero">
+<div class="tag">API Testing</div>
+<h1>How to Test a REST API: A Practical Guide</h1>
+<p class="lead">Learn how to test endpoints, HTTP methods, query parameters, headers, authentication, request bodies and responses without needing a complicated setup.</p>
+</section>
+
+<article class="card">
+<h2>What is REST API testing?</h2>
+<p>REST API testing means sending HTTP requests to an API and checking whether the server returns the expected status, headers and data. It is useful when developing, debugging or integrating a web or mobile application.</p>
+<p>A typical API request contains a method and URL, and may also include query parameters, headers and a request body.</p>
+</article>
+
+<article class="card">
+<h2>1. Choose the HTTP method</h2>
+<p>The method tells the server what operation you want to perform.</p>
+<ul>
+<li><strong>GET</strong> — retrieve data.</li>
+<li><strong>POST</strong> — create or submit data.</li>
+<li><strong>PUT</strong> — replace an existing resource.</li>
+<li><strong>PATCH</strong> — partially update a resource.</li>
+<li><strong>DELETE</strong> — remove a resource.</li>
+<li><strong>HEAD</strong> — retrieve response headers without the response body.</li>
+</ul>
+</article>
+
+<article class="card">
+<h2>2. Enter the API URL</h2>
+<p>Start with the endpoint you want to test. For example:</p>
+<div class="code">https://jsonplaceholder.typicode.com/todos/1</div>
+<p>For endpoints that use query parameters, add them to the URL:</p>
+<div class="code">https://api.example.com/users?page=1&amp;limit=20</div>
+</article>
+
+<article class="card">
+<h2>3. Add headers</h2>
+<p>Headers provide additional information to the server. Common examples include content type and authorization.</p>
+<div class="code">Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN</div>
+<p>Do not publish real API keys or access tokens in frontend source code, screenshots or public repositories.</p>
+</article>
+
+<article class="card">
+<h2>4. Test authentication</h2>
+<p>Many private APIs require authentication. A common pattern is a Bearer token:</p>
+<div class="code">Authorization: Bearer YOUR_TOKEN</div>
+<p>Some APIs use an API key instead. Follow the authentication format documented by the API provider.</p>
+<div class="tip"><strong>Tip:</strong> A 401 response usually indicates that authentication is missing or invalid. A 403 response can mean the server understood the request but does not permit the requested operation.</div>
+</article>
+
+<article class="card">
+<h2>5. Send a JSON request body</h2>
+<p>POST, PUT and PATCH requests commonly send JSON data. Set the content type and provide valid JSON.</p>
+<div class="code">{
+  "title": "Test",
+  "body": "Hello from API CSV Tools",
+  "userId": 1
+}</div>
+<p>Malformed JSON can cause the server to reject the request, so validate the body before sending it.</p>
+</article>
+
+<article class="card">
+<h2>6. Check the response</h2>
+<p>After sending a request, inspect at least these parts of the response:</p>
+<ul>
+<li><strong>Status code</strong> — indicates the broad result of the request.</li>
+<li><strong>Response time</strong> — helps identify unexpectedly slow endpoints.</li>
+<li><strong>Response headers</strong> — can contain content type, caching and server information.</li>
+<li><strong>Response body</strong> — contains the returned data or error details.</li>
+</ul>
+<h3>Common status codes</h3>
+<ul>
+<li><strong>200 OK</strong> — request succeeded.</li>
+<li><strong>201 Created</strong> — a resource was created.</li>
+<li><strong>204 No Content</strong> — request succeeded without a response body.</li>
+<li><strong>400 Bad Request</strong> — request data is invalid or malformed.</li>
+<li><strong>401 Unauthorized</strong> — authentication is required or invalid.</li>
+<li><strong>403 Forbidden</strong> — the server refuses the requested operation.</li>
+<li><strong>404 Not Found</strong> — the requested resource was not found.</li>
+<li><strong>500 Internal Server Error</strong> — the server encountered an error.</li>
+</ul>
+</article>
+
+<article class="card">
+<h2>7. Test more than one scenario</h2>
+<p>A good API test is not limited to one successful request. Test valid input, missing fields, invalid values, authentication failures, empty results and unexpected input where appropriate.</p>
+<ol>
+<li>Test the normal successful request.</li>
+<li>Change or remove required parameters.</li>
+<li>Test authentication and authorization behavior.</li>
+<li>Check invalid JSON or unsupported values.</li>
+<li>Verify that the response structure matches the API documentation.</li>
+</ol>
+</article>
+
+<article class="card">
+<h2>Test a REST API in your browser</h2>
+<p>API CSV Tools includes a browser-based API Tester for sending requests and inspecting status, timing, headers and response data.</p>
+<div class="cta"><a class="btn" href="/api-tester/">Open API Tester →</a><a class="btn secondary" href="/blog/">More developer guides</a></div>
+</article>
+</main>
+<footer><div class="wrap">API CSV Tools · Free tools for developers · <a href="/api-tester/">API Tester</a><a href="/csv-tools/">CSV Tools</a><a href="/json-formatter/">JSON Formatter</a><a href="/schema-diff/">Schema Diff</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div></footer>
+</body>
+</html>
