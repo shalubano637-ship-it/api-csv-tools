@@ -4,3 +4,11 @@ compatibility_date = "2026-09-26"
 
 [vars]
 # Set GATEWAY_SECRET as a Cloudflare Worker secret for production.
+
+[[ratelimits]]
+name = "GATEWAY_LIMITER"
+namespace_id = "9262601"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60
