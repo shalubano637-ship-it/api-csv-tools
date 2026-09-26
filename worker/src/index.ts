@@ -7,6 +7,9 @@ const cors = {
 };
 
 const ALLOWED_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"]);
+const MAX_REQUEST_BODY = 1024 * 1024;
+const MAX_RESPONSE_BODY = 2 * 1024 * 1024;
+const MAX_URL_LENGTH = 4096;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -80,6 +83,11 @@ export default {
       };
 
       if (!input.url) return json({ error: "url is required" }, 400);
+      if (input.url.length > MAX_URL_LENGTH) return json({ error: "URL is too long" }, 400);
+      if (input.body !== undefined) {
+        const serialized = typeof input.body === "string" ? input.body : JSON.stringify(input.body);
+        if (serialized.length > MAX_REQUEST_BODY) return json({ error: "Request body is too large (max 1 MB)" }, 413);
+      }
 
       const target = new URL(input.url);
       if (!["http:", "https:"].includes(target.protocol)) {
@@ -117,6 +125,7 @@ export default {
       });
 
       const text = await upstream.text();
+      if (text.length > MAX_RESPONSE_BODY) return json({ error: "Upstream response is too large (max 2 MB)" }, 413);
       const responseHeaders: Record<string, string> = {};
       upstream.headers.forEach((value, key) => {
         responseHeaders[key] = value;
