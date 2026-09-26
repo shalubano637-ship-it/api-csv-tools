@@ -1,3 +1,7 @@
+import { McpServer } from "@modelcontextprotocol/server";
+import { createMcpHandler } from "agents/mcp/server";
+import { z } from "zod";
+
 interface Env {
   GATEWAY_SECRET: string;
   CHATGPT_ACTION_KEY?: string;
@@ -11,6 +15,7 @@ const cors = {
 };
 
 const ALLOWED_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"]);
+const MCP_SAFE_METHODS = new Set(["GET", "HEAD"]);
 const MAX_REQUEST_BODY = 1024 * 1024;
 const MAX_RESPONSE_BODY = 2 * 1024 * 1024;
 const MAX_URL_LENGTH = 4096;
@@ -155,23 +160,13 @@ async function runUpstream(input: {
   if (input.url.length > MAX_URL_LENGTH) return json({ error: "URL is too long" }, 400);
 
   const target = new URL(input.url);
-  if (!["http:", "https:"].includes(target.protocol)) {
-    return json({ error: "Only HTTP(S) URLs are allowed" }, 400);
-  }
-  if (target.username || target.password) {
-    return json({ error: "Credentials in the target URL are not allowed" }, 400);
-  }
-  if (target.port && target.port !== "80" && target.port !== "443") {
-    return json({ error: "Only ports 80 and 443 are allowed" }, 400);
-  }
-  if (isBlockedHost(target.hostname)) {
-    return json({ error: "Private or local hosts are not allowed" }, 400);
-  }
+  if (!["http:", "https:"].includes(target.protocol)) return json({ error: "Only HTTP(S) URLs are allowed" }, 400);
+  if (target.username || target.password) return json({ error: "Credentials in the target URL are not allowed" }, 400);
+  if (target.port && target.port !== "80" && target.port !== "443") return json({ error: "Only ports 80 and 443 are allowed" }, 400);
+  if (isBlockedHost(target.hostname)) return json({ error: "Private or local hosts are not allowed" }, 400);
 
   const method = (input.method || "GET").toUpperCase();
-  if (!ALLOWED_METHODS.has(method)) {
-    return json({ error: "Unsupported method" }, 400);
-  }
+  if (!ALLOWED_METHODS.has(method)) return json({ error: "Unsupported method" }, 400);
 
   const headers = cleanHeaders(input.headers);
   let headerBytes = 0;
@@ -220,9 +215,59 @@ async function runUpstream(input: {
   });
 }
 
+function createServer() {
+  const server = new McpServer({
+    name: "API CSV Tools",
+    version: "1.0.0",
+  });
+
+  server.registerTool(
+    "test_api",
+    {
+      description: "Test a public HTTP or HTTPS API with a safe read-only GET or HEAD request. Private/local hosts, non-standard ports, credentials in URLs, and oversized requests are blocked.",
+      inputSchema: {
+        url: z.string().url().describe("Public HTTP or HTTPS API URL"),
+        method: z.enum(["GET", "HEAD"]).default("GET"),
+        headers: z.record(z.string(), z.string()).optional(),
+      },
+    },
+    async ({ url, method, headers }) => {
+      const response = await runUpstream({ url, method, headers });
+      const data = await response.json() as Record<string, unknown>;
+      const status = response.status;
+
+      return {
+        isError: status >= 400,
+        content: [{
+          type: "text",
+          text: JSON.stringify(data),
+        }],
+        structuredContent: data,
+      };
+    },
+  );
+
+  return server;
+}
+
+const mcpHandler = createMcpHandler(createServer, {
+  route: "/mcp",
+  corsOptions: { origin: "*", methods: ["GET", "POST", "OPTIONS"], headers: ["Content-Type", "Authorization", "Mcp-Session-Id"] },
+});
+
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const requestUrl = new URL(request.url);
+
+    if (requestUrl.pathname === "/mcp") {
+      if (!env.GATEWAY_SECRET) return json({ error: "Gateway is not configured" }, 503);
+
+      const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
+      const limited = await env.GATEWAY_LIMITER.limit({ key: `mcp:${clientKey}` });
+      if (!limited.success) return json({ error: "Rate limit exceeded. Try again later." }, 429);
+
+      return mcpHandler(request, env, ctx);
+    }
 
     if (request.method === "OPTIONS") {
       return requestUrl.pathname === "/api/gateway" || requestUrl.pathname === "/api/chatgpt/test"
@@ -240,22 +285,16 @@ export default {
       return json({ error: "Not found" }, 404);
     }
 
-    if (!env.GATEWAY_SECRET) {
-      return json({ error: "Gateway is not configured" }, 503);
-    }
+    if (!env.GATEWAY_SECRET) return json({ error: "Gateway is not configured" }, 503);
 
     const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
     const limited = await env.GATEWAY_LIMITER.limit({ key: clientKey });
     if (!limited.success) return json({ error: "Rate limit exceeded. Try again later." }, 429);
 
     if (requestUrl.pathname === "/api/chatgpt/test") {
-      if (!env.CHATGPT_ACTION_KEY) {
-        return json({ error: "ChatGPT action is not configured" }, 503);
-      }
+      if (!env.CHATGPT_ACTION_KEY) return json({ error: "ChatGPT action is not configured" }, 503);
       const providedKey = request.headers.get("X-API-Key");
-      if (!providedKey || providedKey !== env.CHATGPT_ACTION_KEY) {
-        return json({ error: "Unauthorized" }, 401);
-      }
+      if (!providedKey || providedKey !== env.CHATGPT_ACTION_KEY) return json({ error: "Unauthorized" }, 401);
     }
 
     if (request.method !== "POST") return json({ error: "Not found" }, 404);
