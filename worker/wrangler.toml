@@ -1,0 +1,6 @@
+name = "api-csv-tools-gateway"
+main = "src/index.ts"
+compatibility_date = "2026-09-26"
+
+[vars]
+# Set GATEWAY_SECRET as a Cloudflare Worker secret for production.
