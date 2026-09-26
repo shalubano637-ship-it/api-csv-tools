@@ -7,7 +7,8 @@
   --line:#202a38;--line2:#2b3748;--muted:#7f8da2;--text:#edf2ff;
   --purple:#8b7cff;--purple2:#6e5df6;--green:#50d69b;--red:#ff7187;--yellow:#e5c76a;
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+button:focus,button:focus-visible{outline:none;box-shadow:none}
 html{scroll-behavior:smooth}
 body{margin:0;min-width:320px;background:var(--bg)}
 button,input,select,textarea{font:inherit}
