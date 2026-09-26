@@ -28,7 +28,28 @@ function downloadBlob(content:string,name:string,type:string){const blob=new Blo
 function downloadCsv(){downloadBlob(Papa.unparse(rows),"cleaned-data.csv","text/csv")}
 function csvToJson(){try{setJson(JSON.stringify(rows,null,2));setJsonError("");setTool("json")}catch(e){setJsonError(e instanceof Error?e.message:"Could not convert CSV")}}
 function jsonToCsv(){try{const value=JSON.parse(json);if(!Array.isArray(value)||!value.every(x=>x&&typeof x==="object"&&!Array.isArray(x)))throw new Error("JSON must be an array of objects.");const csv=Papa.unparse(value as Row[]);downloadBlob(csv,"converted.csv","text/csv");setJsonError("")}catch(e){setJsonError(e instanceof Error?e.message:"Invalid JSON")}}
-function validateCsv(){const issues:string[]=[];const seen=new Set<string>();columns.forEach((c,index)=>{const key=c.trim();if(!key)issues.push(`Column ${index+1} has an empty header.`);else if(seen.has(key.toLowerCase()))issues.push(`Duplicate column header: ${key}`);else seen.add(key.toLowerCase())});let missing=0,emptyRows=0;rows.forEach((row,index)=>{let rowMissing=0;columns.forEach(c=>{if(String(row[c]??"").trim()==="")rowMissing++});if(rowMissing){missing+=rowMissing;if(rowMissing===columns.length)emptyRows++;if(issues.length<50)issues.push(`Row ${index+2}: ${rowMissing} missing value${rowMissing===1?"":"s"}.`)}});return{issues,missing,emptyRows,duplicateHeaders:columns.length-seen.size}}
+function validateCsv(){
+  const issues:string[]=[];
+  const seen=new Set<string>();
+  let duplicateHeaders=0;
+  columns.forEach((c,index)=>{
+    const key=c.trim();
+    if(!key) issues.push(`Column ${index+1} has an empty header.`);
+    else if(seen.has(key.toLowerCase())){ duplicateHeaders++; issues.push(`Duplicate column header: ${key}`); }
+    else seen.add(key.toLowerCase());
+  });
+  let missing=0,emptyRows=0;
+  rows.forEach((row,index)=>{
+    let rowMissing=0;
+    columns.forEach(c=>{if(String(row[c]??"").trim()==="") rowMissing++;});
+    if(rowMissing){
+      missing+=rowMissing;
+      if(rowMissing===columns.length) emptyRows++;
+      if(issues.length<50) issues.push(`Row ${index+2}: ${rowMissing} missing value${rowMissing===1?"":"s"}.`);
+    }
+  });
+  return {issues,missing,emptyRows,duplicateHeaders};
+}
 function cleanCsv(){const cleaned=rows.map(row=>{const out:Row={};for(const key of columns){const normalized=key.trim();if(normalized)out[normalized]=typeof row[key]==="string"?String(row[key]).trim():row[key]}return out});setRows(cleaned);setColumns(columns.map(x=>x.trim()).filter(Boolean))}
 async function runImport(){const endpoint=importUrl.trim();if(!endpoint||!rows.length)return;setImportRunning(true);setImportResults([]);setImportProgress({done:0,total:rows.length,success:0,failed:0});const results:{row:number;status:number|string;ok:boolean;error?:string}[]=[];for(let i=0;i<rows.length;i++){const row=rows[i];const payload:Row={};for(const col of columns){const key=importMapping[col]||col;if(key)payload[key]=row[col]}try{const r=await fetch(endpoint,{method:importMethod,headers:{"Content-Type":"application/json","Accept":"application/json,text/plain,*/*"},body:JSON.stringify(payload)});const ok=r.ok;results.push({row:i+2,status:r.status,ok,error:ok?undefined:(await r.text()).slice(0,200)});setImportProgress(p=>({...p,done:i+1,success:p.success+(ok?1:0),failed:p.failed+(ok?0:1)}))}catch(e){results.push({row:i+2,status:"ERR",ok:false,error:e instanceof Error?e.message:"Request failed"});setImportProgress(p=>({...p,done:i+1,failed:p.failed+1}))}setImportResults([...results])}setImportRunning(false)}
 function downloadImportFailures(){const failed=importResults.filter(x=>!x.ok);if(!failed.length)return;downloadBlob(Papa.unparse(failed.map(x=>({row:x.row,status:x.status,error:x.error||"Request failed"}))),"import-failures.csv","text/csv")}
