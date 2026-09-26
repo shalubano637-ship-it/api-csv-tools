@@ -129,7 +129,7 @@ function isBlockedHost(hostname: string) {
   );
 }
 
-function cleanHeaders(input: Record<string, string> | undefined) {
+function cleanHeaders(input: Record<string, string> | undefined, options?: { stripApiKey?: boolean }) {
   const headers = new Headers();
 
   if (input) {
@@ -143,7 +143,7 @@ function cleanHeaders(input: Record<string, string> | undefined) {
   headers.delete("origin");
   headers.delete("referer");
   headers.delete("cookie");
-  headers.delete("x-api-key");
+  if (options?.stripApiKey) headers.delete("x-api-key");
   headers.delete("x-gateway-secret");
   headers.delete("content-length");
   return headers;
@@ -154,6 +154,7 @@ async function runUpstream(input: {
   method?: string;
   headers?: Record<string, string>;
   body?: unknown;
+  stripGatewayApiKey?: boolean;
 }) {
   if (!input.url || typeof input.url !== "string") return json({ error: "url is required" }, 400);
   if (input.url.length > MAX_URL_LENGTH) return json({ error: "URL is too long" }, 400);
@@ -167,7 +168,7 @@ async function runUpstream(input: {
   const method = (input.method || "GET").toUpperCase();
   if (!ALLOWED_METHODS.has(method)) return json({ error: "Unsupported method" }, 400);
 
-  const headers = cleanHeaders(input.headers);
+  const headers = cleanHeaders(input.headers, { stripApiKey: input.stripGatewayApiKey === true });
   let headerBytes = 0;
   let headerCount = 0;
   headers.forEach((value, key) => {
@@ -330,7 +331,7 @@ export default {
         body?: unknown;
       };
 
-      return await runUpstream(input);
+      return await runUpstream({ ...input, stripGatewayApiKey: requestUrl.pathname === "/api/chatgpt/test" });
     } catch (error) {
       return json({
         error: error instanceof Error ? error.message : "Gateway request failed",
