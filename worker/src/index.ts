@@ -1,4 +1,4 @@
-interface Env { GATEWAY_SECRET: string }
+interface Env { GATEWAY_SECRET: string; GATEWAY_LIMITER: { limit(options: { key: string }): Promise<{ success: boolean }> } }
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -60,6 +60,9 @@ export default {
     }
 
     const requestUrl = new URL(request.url);
+    const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
+    const limited = await env.GATEWAY_LIMITER.limit({ key: clientKey });
+    if (!limited.success) return json({ error: "Rate limit exceeded. Try again later." }, 429);
     if (requestUrl.pathname !== "/api/gateway" || request.method !== "POST") {
       return json({ error: "Not found" }, 404);
     }
@@ -83,6 +86,8 @@ export default {
         return json({ error: "Only HTTP(S) URLs are allowed" }, 400);
       }
 
+      if (target.username || target.password) return json({ error: "Credentials in the target URL are not allowed" }, 400);
+      if (target.port && target.port !== "80" && target.port !== "443") return json({ error: "Only ports 80 and 443 are allowed" }, 400);
       if (isBlockedHost(target.hostname)) {
         return json({ error: "Private or local hosts are not allowed" }, 400);
       }
@@ -93,6 +98,7 @@ export default {
       }
 
       const headers = cleanHeaders(input.headers);
+      if (headers.has("content-length")) headers.delete("content-length");
       let body: string | undefined;
 
       if (!["GET", "HEAD"].includes(method) && input.body !== undefined) {
