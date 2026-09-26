@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://api-csv-tools.shalubano637.workers.dev/sitemap.xml
